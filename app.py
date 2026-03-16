@@ -10,10 +10,7 @@ st.title("Smart Hedge AI Terminal")
 
 # TIMER
 placeholder = st.empty()
-
-for seconds in range(60,0,-1):
-    placeholder.info(f"Next AI Signal Update: 00:{seconds:02d}")
-    time.sleep(1)
+placeholder.info("Next AI Signal Update: 00:60")
 
 # LIVE DATA
 nifty = yf.Ticker("^NSEI")
