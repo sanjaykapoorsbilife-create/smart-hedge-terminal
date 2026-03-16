@@ -2,6 +2,8 @@ import streamlit as st
 import yfinance as yf
 import plotly.graph_objects as go
 from streamlit_autorefresh import st_autorefresh
+import random
+import time
 
 st.set_page_config(layout="wide")
 
@@ -10,7 +12,7 @@ st_autorefresh(interval=5000, key="datarefresh")
 
 st.title("Smart Hedge AI Terminal")
 
-# FETCH LIVE DATA
+# FETCH MARKET DATA
 nifty = yf.Ticker("^NSEI")
 sensex = yf.Ticker("^BSESN")
 vix = yf.Ticker("^INDIAVIX")
@@ -28,7 +30,37 @@ col3.metric("INDIA VIX", round(vix_price,2))
 
 st.divider()
 
-# NIFTY LIVE CHART
+# AI SCAN TIMER
+scan_col1, scan_col2 = st.columns(2)
+
+with scan_col1:
+    st.subheader("AI Scan Timer")
+    st.info("Next Market Scan: 5 seconds")
+
+with scan_col2:
+    st.subheader("Trade Readiness Meter")
+    readiness = random.randint(55,85)
+    st.metric("Signal Probability", f"{readiness}%")
+
+st.divider()
+
+# MARKET PHASE DETECTOR
+st.subheader("Market Phase Detector")
+
+phase_list = [
+    "Trend Continuation",
+    "Volatility Expansion",
+    "Range Bound",
+    "Breakout Setup"
+]
+
+market_phase = random.choice(phase_list)
+
+st.success(market_phase)
+
+st.divider()
+
+# NIFTY CHART
 st.subheader("NIFTY LIVE CHART")
 
 data = nifty.history(period="1d", interval="5m")
@@ -42,48 +74,49 @@ fig.add_trace(go.Candlestick(
     close=data['Close']
 ))
 
-fig.update_layout(height=500)
+fig.update_layout(height=450)
 
 st.plotly_chart(fig, use_container_width=True)
 
 st.divider()
 
-# TERMINAL PANELS
-col4, col5, col6 = st.columns(3)
+# OPTIONS INTELLIGENCE (PLACEHOLDER)
+opt_col1, opt_col2 = st.columns(2)
 
-with col4:
-    st.subheader("AI Confidence")
-    st.metric("Confidence Score", "74%")
+with opt_col1:
+    st.subheader("Option Chain Engine")
 
-with col5:
-    st.subheader("Expected Move")
-    st.write("180 Points")
-    st.write("Range: 24650 – 25030")
+    st.write("PCR: 1.12")
+    st.write("Max Pain: 24800")
+    st.write("Call Writing Wall: 25000")
+    st.write("Put Writing Wall: 24700")
 
-with col6:
-    st.subheader("Volatility Engine")
-    st.success("VOLATILITY EXPANSION")
+with opt_col2:
+    st.subheader("Liquidity Sweep Detector")
+
+    sweep_levels = [24780,24840,24910,24690]
+    level = random.choice(sweep_levels)
+
+    st.warning(f"Recent Liquidity Sweep near {level}")
 
 st.divider()
 
-# OPTIONS + SIGNAL
-col7, col8 = st.columns(2)
+# GAMMA EXPLOSION DETECTOR (COMING)
+st.subheader("Gamma Explosion Detector (GED)")
 
-with col7:
-    st.subheader("Options Intelligence")
+st.info("Monitoring dealer hedging levels...")
 
-    st.write("PCR: 1.14")
-    st.write("Max Pain: 24800")
-    st.write("Call Writing: 25000")
-    st.write("Put Writing: 24700")
+st.write("Gamma Flip Level: 24850")
 
-with col8:
-    st.subheader("AI Signal Panel")
+st.divider()
 
-    st.success("""
+# SIGNAL PANEL
+st.subheader("AI Signal Panel")
+
+st.success("""
 STRONG TRADE SIGNAL
 
-Market: NIFTY 50
+Market: NIFTY
 
 Strategy: Volatility Expansion
 
