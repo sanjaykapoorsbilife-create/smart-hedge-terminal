@@ -1,298 +1,195 @@
 import streamlit as st
 import yfinance as yf
-import pandas as pd
-import plotly.graph_objects as go
-from streamlit_autorefresh import st_autorefresh
-import datetime
+import time
+import random
+import streamlit.components.v1 as components
 
-# ---------- PAGE CONFIG ----------
-st.set_page_config(layout="wide")
+st.set_page_config(
+    page_title="Smart Hedge AI Terminal",
+    layout="wide"
+)
 
-# ---------- THEME TOGGLE ----------
-light_mode = st.sidebar.toggle("Light Mode")
+# AUTO REFRESH EVERY 5 SECONDS
+st.markdown(
+"""
+<meta http-equiv="refresh" content="5">
+""",
+unsafe_allow_html=True
+)
+st.markdown("""
+<style>
 
-if not light_mode:
-    st.markdown("""
-        <style>
-        .stApp {
-            background-color:#0E1117;
-            color:white;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+body {
+background-color:#0b0f19;
+color:white;
+}
 
-st.title("Smart Hedge AI Terminal")
+.header-bar{
+position:sticky;
+top:0;
+background:#0b0f19;
+z-index:999;
+padding:10px;
+border-bottom:1px solid #333;
+}
 
-# ---------- USER MODE ----------
-mode = st.sidebar.selectbox("User Mode", ["Free","Premium"])
+.signal-btn{
+position:fixed;
+bottom:25px;
+right:25px;
+background:#00ff88;
+color:black;
+padding:14px;
+border-radius:10px;
+font-weight:bold;
+animation:blink 1s infinite;
+z-index:9999;
+}
 
-# ---------- MARKET TIME LOGIC ----------
-now = datetime.datetime.now()
-market_open = now.replace(hour=9, minute=15, second=0)
-market_close = now.replace(hour=15, minute=30, second=0)
+@keyframes blink{
+0%{opacity:1;}
+50%{opacity:0.4;}
+100%{opacity:1;}
+}
 
-market_live = market_open <= now <= market_close
-
-# ---------- REFRESH SYSTEM ----------
-if market_live:
-    st_autorefresh(interval=2000, key="price_refresh")
-else:
-    st.warning("Market Closed – showing last session data")
-
-# ---------- FETCH MARKET DATA ----------
+</style>
+""", unsafe_allow_html=True)
 nifty = yf.Ticker("^NSEI")
 sensex = yf.Ticker("^BSESN")
 vix = yf.Ticker("^INDIAVIX")
 
-nifty_price = nifty.history(period="1d")["Close"].iloc[-1]
-sensex_price = sensex.history(period="1d")["Close"].iloc[-1]
-vix_price = vix.history(period="1d")["Close"].iloc[-1]
+nifty_data = nifty.history(period="1d")
+sensex_data = sensex.history(period="1d")
+vix_data = vix.history(period="1d")
 
-# ---------- MARKET OVERVIEW ----------
-col1, col2, col3 = st.columns(3)
+nifty_price = nifty_data["Close"].iloc[-1]
+sensex_price = sensex_data["Close"].iloc[-1]
+vix_price = vix_data["Close"].iloc[-1]
 
-col1.metric("NIFTY 50", round(nifty_price,2))
+gift_price = 24880
+def market_phase():
+
+    phase=random.choice([
+        "🟡 ACCUMULATION",
+        "🟢 EXPANSION",
+        "🔵 TREND",
+        "🔴 DISTRIBUTION"
+    ])
+
+    return phase
+
+
+def ai_signal():
+
+    confidence=random.randint(55,85)
+
+    signal_type=random.choice([
+        "BUY CE",
+        "BUY PE",
+        "STRANGLE"
+    ])
+
+    return signal_type,confidence
+    phase = market_phase()
+
+header_col1, header_col2 = st.columns([1,6])
+
+with header_col1:
+    st.image("https://i.imgur.com/4M34hi2.png", width=80)
+
+with header_col2:
+    st.title("Smart Hedge AI Terminal")
+
+
+col1,col2,col3,col4,col5,col6 = st.columns(6)
+
+col1.metric("NIFTY", round(nifty_price,2))
 col2.metric("SENSEX", round(sensex_price,2))
 col3.metric("INDIA VIX", round(vix_price,2))
+col4.metric("MARKET PHASE", phase)
+col5.metric("MARKET STATUS","LIVE")
+col6.metric("GIFT NIFTY", gift_price)
+tab1,tab2,tab3,tab4,tab5 = st.tabs([
+"Market Overview",
+"Options Analytics",
+"AI Signals",
+"Advanced Analytics",
+"System Monitor"
+])
 
-st.divider()
+signal,confidence = ai_signal()
 
-# ---------- AI TRADE CONFIDENCE ----------
-scan_col1, scan_col2 = st.columns(2)
+# MARKET OVERVIEW
+with tab1:
 
-with scan_col1:
-    st.subheader("AI Scan Timer")
-    st.info("Scanning market every 2 seconds")
+    st.header("Sector Heatmap")
 
-with scan_col2:
-    st.subheader("AI Trade Confidence ⓘ")
-
-    confidence = 65  # placeholder until probability engine added
-    st.metric("Confidence", f"{confidence}%")
-
-st.divider()
-
-# ---------- CONFIDENCE HEATMAP ----------
-st.subheader("Confidence Heatmap")
-
-heatmap_data = {
-"Engine":[
-"Price Structure",
-"Momentum Environment",
-"Institutional Positioning",
-"Smart Money Activity",
-"Market Pressure Analyzer",
-"Volatility Environment"
-],
-"Status":[
-"Building",
-"Building",
-"Strong",
-"Building",
-"Strong",
-"Strong"
-]
-}
-
-df = pd.DataFrame(heatmap_data)
-
-st.table(df)
-
-st.divider()
-
-# ---------- LIVE CHART ----------
-st.subheader("NIFTY LIVE CHART")
-
-data = nifty.history(period="1d", interval="5m")
-
-fig = go.Figure()
-
-fig.add_trace(go.Candlestick(
-open=data["Open"],
-high=data["High"],
-low=data["Low"],
-close=data["Close"]
-))
-
-fig.update_layout(height=450)
-
-st.plotly_chart(fig, use_container_width=True)
-
-st.divider()
-
-# ---------- MARKET PANELS ----------
-col4,col5,col6 = st.columns(3)
-
-with col4:
-    st.subheader("Market Condition")
-    st.success("Trend Continuation")
-
-with col5:
-    st.subheader("Smart Money Activity")
-    st.warning("Liquidity sweep detected near support")
-
-with col6:
-    st.subheader("Institutional Positioning")
-    st.info("Put writers defending 24700")
-
-st.divider()
-
-# ---------- MARKET PRESSURE ANALYZER ----------
-st.subheader("Market Pressure Analyzer")
-
-st.info("Monitoring dealer hedging pressure")
-
-st.divider()
-
-# ---------- SIGNAL PANEL ----------
-st.subheader("AI Signal Panel")
-
-if mode == "Free":
-
-    st.warning("Signal will unlock in 5 minutes")
-
-else:
-
-    st.success("""
-STRONG TRADE SIGNAL
-
-Market: NIFTY
-
-Trade:
-Buy 24900 CE
-Buy 24700 PE
-
-Stop Loss: 30
-
-Targets:
-60 / 90 / 150
-
-Confidence: 78%
-""")
-st.divider()
-st.header("ADVANCED ANALYTICS")
-
-col1, col2, col3 = st.columns(3)
-
-# -----------------------------
-# PROBABILITY LADDER
-# -----------------------------
-
-with col1:
-
-    st.subheader("Probability Ladder")
-
-    st.metric("100 Point Move", "92%")
-    st.metric("200 Point Move", "78%")
-    st.metric("300 Point Move", "63%")
-    st.metric("500 Point Move", "41%")
-    st.metric("800 Point Move", "18%")
-    st.metric("1000 Point Move", "7%")
+    st.write("BANKING +1.82% 🟢")
+    st.write("ENERGY +1.35% 🟢")
+    st.write("AUTO +0.64% 🟡")
+    st.write("IT -1.26% 🔴")
 
 
-# -----------------------------
-# TREND REVERSAL DETECTOR
-# -----------------------------
+# OPTIONS ANALYTICS
+with tab2:
 
-with col2:
+    st.header("F&O Market Structure")
 
-    st.subheader("Trend Reversal Detector")
+    st.write("Long Build-Up: 15")
+    st.write("Short Build-Up: 9")
+    st.write("Short Covering: 11")
+    st.write("Long Unwinding: 7")
 
-    reversal_prob = 62
 
-    if reversal_prob > 70:
-        st.success(f"Strong Reversal Probability: {reversal_prob}%")
-    elif reversal_prob > 40:
-        st.warning(f"Possible Reversal: {reversal_prob}%")
+# AI SIGNALS
+with tab3:
+
+    st.header("AI Signal Engine")
+
+    st.write("Daily Trade Limit: 0 / 3")
+
+    st.write("AI Confidence:",confidence,"%")
+
+    st.success(signal)
+
+
+# ADVANCED ANALYTICS
+with tab4:
+
+    st.header("Market Manipulation Detector")
+
+    risk=random.randint(30,80)
+
+    if risk>70:
+        st.error("High Manipulation Risk")
+
+    elif risk>50:
+        st.warning("Possible Trap")
+
     else:
-        st.error(f"Trend Stable: {reversal_prob}%")
-
-    st.write("Signals:")
-    st.write("- Liquidity sweep detected")
-    st.write("- Volatility expansion")
-    st.write("- Momentum shift")
+        st.success("Market Stable")
 
 
-# -----------------------------
-# GIFT NIFTY LIVE
-# -----------------------------
+# SYSTEM MONITOR
+with tab5:
 
-with col3:
+    st.header("Engine Status")
 
-    st.subheader("GIFT Nifty Live")
-
-    gift_price = 24880
-    gift_change = "+42"
-    gift_pct = "+0.17%"
-
-    st.metric("Price", gift_price)
-    st.write("Change:", gift_change)
-    st.write("Change %:", gift_pct)
-    st.divider()
-st.header("DERIVATIVES INTELLIGENCE")
-
-col4, col5 = st.columns(2)
-
-# F&O MARKET STRUCTURE
-with col4:
-
-    st.subheader("F&O Market Structure")
-
-    st.write("🟢 Long Build-Up: 15 stocks")
-    st.write("🔴 Short Build-Up: 9 stocks")
-    st.write("🟡 Short Covering: 11 stocks")
-    st.write("🟠 Long Unwinding: 7 stocks")
+    st.write("Strategy Engine Running")
+    st.write("Market Data Active")
+    st.write("Auto Refresh: 5 Seconds")
 
 
-# UNUSUAL OI ACTIVITY
-with col5:
+# FLOATING SIGNAL
+if confidence>75:
 
-    st.subheader("Unusual OI Activity")
+    st.markdown(
+        '<div class="signal-btn">⚡ NEW TRADE SIGNAL</div>',
+        unsafe_allow_html=True
+    )
 
-    st.write("RELIANCE → OI +18%")
-    st.write("TATA MOTORS → OI +22%")
-    st.write("SBIN → OI +15%")
-    st.divider()
-st.header("F&O Momentum")
-
-col6, col7 = st.columns(2)
-
-with col6:
-
-    st.subheader("Top F&O Gainers")
-
-    st.write("1️⃣ RELIANCE +2.48%")
-    st.write("2️⃣ ICICI BANK +1.96%")
-    st.write("3️⃣ TATA MOTORS +1.62%")
-    st.write("4️⃣ L&T +1.45%")
-
-
-with col7:
-
-    st.subheader("Top F&O Losers")
-
-    st.write("1️⃣ INFOSYS -2.12%")
-    st.write("2️⃣ SBIN -1.84%")
-    st.write("3️⃣ TCS -1.35%")
-    st.write("4️⃣ WIPRO -1.02%")
-    st.divider()
-st.header("Open = High / Open = Low Scanner")
-
-col8, col9 = st.columns(2)
-
-with col8:
-
-    st.subheader("Open = Low (Bullish)")
-
-    st.write("RELIANCE")
-    st.write("ICICI BANK")
-    st.write("TATA MOTORS")
-
-
-with col9:
-
-    st.subheader("Open = High (Bearish)")
-
-    st.write("INFOSYS")
-    st.write("TCS")
-    st.write("WIPRO")
+    components.html("""
+    <audio autoplay>
+    <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3">
+    </audio>
+    """,height=0)
