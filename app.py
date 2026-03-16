@@ -100,7 +100,7 @@ with header_col1:
 with header_col2:
     st.title("Smart Hedge AI Terminal")
 
-
+phase = market_phase()
 col1,col2,col3,col4,col5,col6 = st.columns(6)
 
 col1.metric("NIFTY", round(nifty_price,2))
