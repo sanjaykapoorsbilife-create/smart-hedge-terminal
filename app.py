@@ -169,3 +169,130 @@ Targets:
 
 Confidence: 78%
 """)
+st.divider()
+st.header("ADVANCED ANALYTICS")
+
+col1, col2, col3 = st.columns(3)
+
+# -----------------------------
+# PROBABILITY LADDER
+# -----------------------------
+
+with col1:
+
+    st.subheader("Probability Ladder")
+
+    st.metric("100 Point Move", "92%")
+    st.metric("200 Point Move", "78%")
+    st.metric("300 Point Move", "63%")
+    st.metric("500 Point Move", "41%")
+    st.metric("800 Point Move", "18%")
+    st.metric("1000 Point Move", "7%")
+
+
+# -----------------------------
+# TREND REVERSAL DETECTOR
+# -----------------------------
+
+with col2:
+
+    st.subheader("Trend Reversal Detector")
+
+    reversal_prob = 62
+
+    if reversal_prob > 70:
+        st.success(f"Strong Reversal Probability: {reversal_prob}%")
+    elif reversal_prob > 40:
+        st.warning(f"Possible Reversal: {reversal_prob}%")
+    else:
+        st.error(f"Trend Stable: {reversal_prob}%")
+
+    st.write("Signals:")
+    st.write("- Liquidity sweep detected")
+    st.write("- Volatility expansion")
+    st.write("- Momentum shift")
+
+
+# -----------------------------
+# GIFT NIFTY LIVE
+# -----------------------------
+
+with col3:
+
+    st.subheader("GIFT Nifty Live")
+
+    gift_price = 24880
+    gift_change = "+42"
+    gift_pct = "+0.17%"
+
+    st.metric("Price", gift_price)
+    st.write("Change:", gift_change)
+    st.write("Change %:", gift_pct)
+    st.divider()
+st.header("DERIVATIVES INTELLIGENCE")
+
+col4, col5 = st.columns(2)
+
+# F&O MARKET STRUCTURE
+with col4:
+
+    st.subheader("F&O Market Structure")
+
+    st.write("🟢 Long Build-Up: 15 stocks")
+    st.write("🔴 Short Build-Up: 9 stocks")
+    st.write("🟡 Short Covering: 11 stocks")
+    st.write("🟠 Long Unwinding: 7 stocks")
+
+
+# UNUSUAL OI ACTIVITY
+with col5:
+
+    st.subheader("Unusual OI Activity")
+
+    st.write("RELIANCE → OI +18%")
+    st.write("TATA MOTORS → OI +22%")
+    st.write("SBIN → OI +15%")
+    st.divider()
+st.header("F&O Momentum")
+
+col6, col7 = st.columns(2)
+
+with col6:
+
+    st.subheader("Top F&O Gainers")
+
+    st.write("1️⃣ RELIANCE +2.48%")
+    st.write("2️⃣ ICICI BANK +1.96%")
+    st.write("3️⃣ TATA MOTORS +1.62%")
+    st.write("4️⃣ L&T +1.45%")
+
+
+with col7:
+
+    st.subheader("Top F&O Losers")
+
+    st.write("1️⃣ INFOSYS -2.12%")
+    st.write("2️⃣ SBIN -1.84%")
+    st.write("3️⃣ TCS -1.35%")
+    st.write("4️⃣ WIPRO -1.02%")
+    st.divider()
+st.header("Open = High / Open = Low Scanner")
+
+col8, col9 = st.columns(2)
+
+with col8:
+
+    st.subheader("Open = Low (Bullish)")
+
+    st.write("RELIANCE")
+    st.write("ICICI BANK")
+    st.write("TATA MOTORS")
+
+
+with col9:
+
+    st.subheader("Open = High (Bearish)")
+
+    st.write("INFOSYS")
+    st.write("TCS")
+    st.write("WIPRO")
