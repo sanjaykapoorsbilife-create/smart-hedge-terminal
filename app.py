@@ -1,4 +1,5 @@
 import streamlit as st
+import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
 import time
@@ -7,48 +8,53 @@ st.set_page_config(layout="wide")
 
 st.title("Smart Hedge AI Terminal")
 
-# LIVE TIMER
+# TIMER
 placeholder = st.empty()
 
-def countdown(t):
-    while t:
-        mins, secs = divmod(t, 60)
-        timer = f"Next AI Signal Update: {mins:02d}:{secs:02d}"
-        placeholder.info(timer)
-        time.sleep(1)
-        t -= 1
+for seconds in range(60,0,-1):
+    placeholder.info(f"Next AI Signal Update: 00:{seconds:02d}")
+    time.sleep(1)
 
-countdown(60)
+# LIVE DATA
+nifty = yf.Ticker("^NSEI")
+sensex = yf.Ticker("^BSESN")
+vix = yf.Ticker("^INDIAVIX")
 
-col1, col2, col3 = st.columns(3)
+nifty_price = nifty.history(period="1d")["Close"].iloc[-1]
+sensex_price = sensex.history(period="1d")["Close"].iloc[-1]
+vix_price = vix.history(period="1d")["Close"].iloc[-1]
 
-with col1:
-    st.subheader("Market Overview")
-    st.metric("NIFTY 50", "24,820", "+0.62%")
-    st.metric("SENSEX", "81,450", "+0.54%")
+col1,col2,col3 = st.columns(3)
 
-with col2:
-    st.subheader("AI Confidence")
-    fig = go.Figure(go.Indicator(
-        mode = "gauge+number",
-        value = 74,
-        gauge = {'axis': {'range': [0,100]},
-        'bar': {'color': "green"}}))
-    st.plotly_chart(fig)
+col1.metric("NIFTY 50", round(nifty_price,2))
+col2.metric("SENSEX", round(sensex_price,2))
+col3.metric("INDIA VIX", round(vix_price,2))
 
-with col3:
-    st.subheader("Volatility Meter")
-    fig2 = go.Figure(go.Indicator(
-        mode = "gauge+number",
-        value = 65,
-        gauge = {'axis': {'range': [0,100]},
-        'bar': {'color': "orange"}}))
-    st.plotly_chart(fig2)
+st.divider()
+
+st.subheader("NIFTY LIVE CHART")
+
+data = nifty.history(period="1d", interval="5m")
+
+fig = go.Figure()
+
+fig.add_trace(go.Candlestick(
+open=data['Open'],
+high=data['High'],
+low=data['Low'],
+close=data['Close']
+))
+
+fig.update_layout(height=500)
+
+st.plotly_chart(fig, use_container_width=True)
+
+st.divider()
 
 st.subheader("AI Signal Panel")
 
 st.success("""
-🟢 STRONG TRADE SIGNAL
+STRONG TRADE SIGNAL
 
 Market: NIFTY 50
 
@@ -60,33 +66,7 @@ Buy 24700 PE
 
 Stop Loss: 30
 
-Targets:
-60 / 90 / 150
-""")
+Targets: 60 / 90 / 150
 
-st.subheader("Options Intelligence")
-
-data = {
-"Indicator":["PCR","Max Pain","Call Writing","Put Writing"],
-"Value":["1.14","24800","25000","24700"]
-}
-
-df = pd.DataFrame(data)
-
-st.table(df)
-
-st.subheader("Market Heatmap")
-
-heatmap_data = pd.DataFrame({
-    "Sector":["Banking","IT","Pharma","Auto","FMCG"],
-    "Strength":[80,30,70,55,60]
-})
-
-st.bar_chart(heatmap_data.set_index("Sector"))
-
-st.sidebar.title("Smart Hedge AI")
-
-st.sidebar.info("""
-AI ENGINE ANALYZING MARKET...
-● ● ●
+Confidence: 74%
 """)
