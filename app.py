@@ -2,8 +2,8 @@ import streamlit as st
 import requests
 from streamlit_autorefresh import st_autorefresh
 
-# ----------- AUTO REFRESH (BEST METHOD) -----------
-st_autorefresh(interval=5000, key="datarefresh")
+# ----------- AUTO REFRESH -----------
+st_autorefresh(interval=5000, key="refresh")
 
 # ----------- PAGE CONFIG -----------
 st.set_page_config(page_title="Smart Hedge V23", layout="wide")
@@ -33,9 +33,9 @@ def get_data():
         idx_data = data.get("data", {}).get("IDX_I", {})
 
         return {
-            "NIFTY": idx_data.get(13, {}).get("last_price", "--"),
-            "SENSEX": idx_data.get(51, {}).get("last_price", "--"),
-            "VIX": idx_data.get(21, {}).get("last_price", "--")
+            "NIFTY": idx_data.get("13", {}).get("last_price", "--"),
+            "SENSEX": idx_data.get("51", {}).get("last_price", "--"),
+            "VIX": idx_data.get("21", {}).get("last_price", "--")
         }
 
     except:
