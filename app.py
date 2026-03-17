@@ -30,11 +30,9 @@ def get_market_status():
     minute = now.minute
     day = now.weekday()
 
-    # Weekend
     if day >= 5:
         return "CLOSED"
 
-    # Market hours (9:15 AM to 3:30 PM)
     if (hour > 9 or (hour == 9 and minute >= 15)) and (hour < 15 or (hour == 15 and minute <= 30)):
         return "LIVE"
     else:
@@ -62,7 +60,7 @@ def get_ltp():
         return {"NIFTY": None, "SENSEX": None, "VIX": None}
 
 
-# ----------- PREVIOUS CLOSE (YAHOO) -----------
+# ----------- PREVIOUS CLOSE -----------
 @st.cache_data(ttl=3600)
 def get_prev_close():
     try:
@@ -79,10 +77,10 @@ def get_prev_close():
         return {"NIFTY": None, "SENSEX": None, "VIX": None}
 
 
-# ----------- GIFT NIFTY (NO CACHE FOR LIVE FEEL) -----------
+# ----------- GIFT NIFTY (FIXED SYMBOL) -----------
 def get_gift_nifty():
     try:
-        gift = yf.Ticker("^NSEI").history(period="1d", interval="1m")
+        gift = yf.Ticker("NIFTY=F").history(period="1d", interval="1m")
         return round(gift["Close"].iloc[-1], 2)
     except:
         return None
@@ -97,14 +95,11 @@ def calc(curr, prev):
     return round(chg, 2), round(pct, 2)
 
 
+# ----------- CLEAN FORMAT (NO ARROWS) -----------
 def format_data(chg, pct):
     if chg is None:
         return None
-    if chg > 0:
-        return f"▲ {chg} ({pct}%)"
-    elif chg < 0:
-        return f"▼ {abs(chg)} ({abs(pct)}%)"
-    return "• 0"
+    return f"{chg} ({pct}%)"
 
 
 def market_phase(vix):
@@ -139,8 +134,8 @@ col5.metric("GIFT NIFTY", gift if gift else "--")
 
 st.subheader(f"Market Phase: {market_phase(ltp['VIX'])}")
 
-# ----------- ERROR CHECK -----------
+# ----------- ERROR HANDLING -----------
 if ltp["NIFTY"] is None:
     st.error("❌ Live data error from Dhan API")
 
-st.caption("Auto-refresh every 5 seconds 🚀")
+st.caption("Live updating every 5 sec ⚡")
