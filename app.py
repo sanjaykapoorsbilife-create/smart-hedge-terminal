@@ -1,4 +1,29 @@
 import streamlit as st
+import requests
+
+# Read from Streamlit Secrets
+CLIENT_ID = st.secrets["DHAN_CLIENT_ID"]
+ACCESS_TOKEN = st.secrets["DHAN_ACCESS_TOKEN"]
+
+headers = {
+    "access-token": ACCESS_TOKEN,
+    "client-id": CLIENT_ID,
+    "Content-Type": "application/json"
+}
+def get_nifty_price():
+    url = "https://api.dhan.co/v2/marketfeed/ltp"
+
+    payload = {
+        "IDX_I": ["NIFTY"]
+    }
+
+    try:
+        res = requests.post(url, headers=headers, json=payload)
+        data = res.json()
+        return data
+    except:
+        return {"error": "API not working"}
+import streamlit as st
 import yfinance as yf
 import time
 import random
@@ -193,3 +218,8 @@ if confidence>75:
     <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3">
     </audio>
     """,height=0)
+st.title("Smart Hedge V23 - Dhan Test")
+
+data = get_nifty_price()
+
+st.write(data)
