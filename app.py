@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 import yfinance as yf
 from streamlit_autorefresh import st_autorefresh
+from datetime import datetime
+import pytz
 
 # ----------- AUTO REFRESH -----------
 st_autorefresh(interval=5000, key="refresh")
@@ -19,12 +21,32 @@ headers = {
     "Content-Type": "application/json"
 }
 
+# ----------- MARKET STATUS -----------
+def get_market_status():
+    ist = pytz.timezone("Asia/Kolkata")
+    now = datetime.now(ist)
+
+    hour = now.hour
+    minute = now.minute
+    day = now.weekday()
+
+    # Weekend
+    if day >= 5:
+        return "CLOSED"
+
+    # Market hours (9:15 AM to 3:30 PM)
+    if (hour > 9 or (hour == 9 and minute >= 15)) and (hour < 15 or (hour == 15 and minute <= 30)):
+        return "LIVE"
+    else:
+        return "CLOSED"
+
+
 # ----------- LIVE DATA (DHAN) -----------
 def get_ltp():
     url = "https://api.dhan.co/v2/marketfeed/ltp"
 
     payload = {
-        "IDX_I": [13, 51, 21]  # NIFTY, SENSEX, VIX
+        "IDX_I": [13, 51, 21]
     }
 
     try:
@@ -57,8 +79,7 @@ def get_prev_close():
         return {"NIFTY": None, "SENSEX": None, "VIX": None}
 
 
-# ----------- GIFT NIFTY -----------
-@st.cache_data(ttl=30)
+# ----------- GIFT NIFTY (NO CACHE FOR LIVE FEEL) -----------
 def get_gift_nifty():
     try:
         gift = yf.Ticker("^NSEI").history(period="1d", interval="1m")
@@ -113,13 +134,13 @@ col1, col2, col3, col4, col5 = st.columns(5)
 col1.metric("NIFTY", ltp["NIFTY"] or "--", format_data(n_chg, n_pct))
 col2.metric("SENSEX", ltp["SENSEX"] or "--", format_data(s_chg, s_pct))
 col3.metric("VIX", ltp["VIX"] or "--", format_data(v_chg, v_pct))
-col4.metric("STATUS", "LIVE")
+col4.metric("STATUS", get_market_status())
 col5.metric("GIFT NIFTY", gift if gift else "--")
 
 st.subheader(f"Market Phase: {market_phase(ltp['VIX'])}")
 
-# ----------- ERROR HANDLING -----------
+# ----------- ERROR CHECK -----------
 if ltp["NIFTY"] is None:
-    st.error("❌ Live data error")
+    st.error("❌ Live data error from Dhan API")
 
 st.caption("Auto-refresh every 5 seconds 🚀")
