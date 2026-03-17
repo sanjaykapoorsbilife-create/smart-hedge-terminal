@@ -18,27 +18,27 @@ headers = {
 def get_data():
     url = "https://api.dhan.co/v2/marketfeed/ltp"
 
-    payload = {
-        "IDX_I": ["13", "51", "17"]
-    }
+    payload = [
+        {"exchangeSegment": "IDX_I", "securityId": "13"},  # NIFTY
+        {"exchangeSegment": "IDX_I", "securityId": "51"},  # SENSEX
+        {"exchangeSegment": "IDX_I", "securityId": "17"}   # VIX
+    ]
 
     try:
         res = requests.post(url, headers=headers, json=payload)
         data = res.json()
 
-        # DEBUG (REMOVE LATER)
-        st.write("API RESPONSE:", data)
-
         result = {"NIFTY": "--", "SENSEX": "--", "VIX": "--"}
 
-        if "data" in data and isinstance(data["data"], dict):
-            for key, value in data["data"].items():
-                if key == "13":
-                    result["NIFTY"] = value.get("last_price", "--")
-                elif key == "51":
-                    result["SENSEX"] = value.get("last_price", "--")
-                elif key == "17":
-                    result["VIX"] = value.get("last_price", "--")
+        if isinstance(data.get("data"), list):
+            for item in data["data"]:
+                sid = item.get("securityId")
+                if sid == "13":
+                    result["NIFTY"] = item.get("last_price", "--")
+                elif sid == "51":
+                    result["SENSEX"] = item.get("last_price", "--")
+                elif sid == "17":
+                    result["VIX"] = item.get("last_price", "--")
 
         return result
 
