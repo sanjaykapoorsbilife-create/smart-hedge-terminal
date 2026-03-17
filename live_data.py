@@ -9,8 +9,8 @@ live_prices = {
     "VIX": 0
 }
 
-CLIENT_ID = "YOUR_CLIENT_ID"
-ACCESS_TOKEN = "YOUR_ACCESS_TOKEN"
+CLIENT_ID = "1100575680"
+ACCESS_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzczODE2Mjc5LCJpYXQiOjE3NzM3Mjk4NzksInRva2VuQ29uc3VtZXJUeXBlIjoiU0VMRiIsIndlYmhvb2tVcmwiOiIiLCJkaGFuQ2xpZW50SWQiOiIxMTAwNTc1NjgwIn0.wC4IH2uhyi1AJJqF54jImqsrew6EYZ4IjHAQeIj8TfgWtL07Cxwy7zUqUkrFKE8ITTeqirH1bcdEeXLnakrF0w"
 
 def on_message(ws, message):
     global live_prices
