@@ -26,11 +26,21 @@ def get_data():
         res = requests.post(url, headers=headers, json=payload)
         data = res.json()
 
-        return {
-            "NIFTY": data["data"]["IDX_I"]["13"]["last_price"],
-            "SENSEX": data["data"]["IDX_I"]["51"]["last_price"],
-            "VIX": data["data"]["IDX_I"]["17"]["last_price"]
-        }
+        # DEBUG (REMOVE LATER)
+        st.write("API RESPONSE:", data)
+
+        result = {"NIFTY": "--", "SENSEX": "--", "VIX": "--"}
+
+        if "data" in data and isinstance(data["data"], dict):
+            for key, value in data["data"].items():
+                if key == "13":
+                    result["NIFTY"] = value.get("last_price", "--")
+                elif key == "51":
+                    result["SENSEX"] = value.get("last_price", "--")
+                elif key == "17":
+                    result["VIX"] = value.get("last_price", "--")
+
+        return result
 
     except Exception as e:
         st.write("ERROR:", e)
