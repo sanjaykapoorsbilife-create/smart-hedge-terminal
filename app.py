@@ -1,5 +1,9 @@
 import streamlit as st
 import requests
+from streamlit_autorefresh import st_autorefresh
+
+# ----------- AUTO REFRESH (BEST METHOD) -----------
+st_autorefresh(interval=5000, key="datarefresh")
 
 # ----------- PAGE CONFIG -----------
 st.set_page_config(page_title="Smart Hedge V23", layout="wide")
@@ -37,10 +41,6 @@ def get_data():
     except:
         return {"NIFTY": "--", "SENSEX": "--", "VIX": "--"}
 
-# ----------- AUTO REFRESH KEY -----------
-if "refresh" not in st.session_state:
-    st.session_state.refresh = 0
-
 # ----------- UI -----------
 st.title("📊 Smart Hedge AI Terminal V23")
 
@@ -53,9 +53,4 @@ col2.metric("SENSEX", data["SENSEX"])
 col3.metric("VIX", data["VIX"])
 col4.metric("STATUS", "LIVE")
 
-# ----------- AUTO REFRESH TRIGGER -----------
-st.caption("Auto refreshing every 5 seconds...")
-
-st.session_state.refresh += 1
-
-st.experimental_rerun() if st.session_state.refresh % 2 == 0 else None
+st.caption("Live auto-refresh every 5 seconds 🚀")
