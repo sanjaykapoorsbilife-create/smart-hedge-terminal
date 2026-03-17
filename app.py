@@ -15,33 +15,36 @@ headers = {
     "Content-Type": "application/json"
 }
 
-# ----------- GET LIVE DATA -----------
-def get_nifty_price():
+# ----------- FETCH DATA -----------
+def get_index_data():
     url = "https://api.dhan.co/v2/marketfeed/ltp"
 
     payload = {
-        "IDX_I": ["NIFTY"]
+        "IDX_I": ["NIFTY", "SENSEX", "INDIA VIX"]
     }
 
     try:
         res = requests.post(url, headers=headers, json=payload)
-        data = res.json()
-        return data["data"]["NIFTY"]["last_price"]
+        return res.json().get("data", {})
     except:
-        return "Error"
+        return {}
 
-# ----------- UI HEADER -----------
-st.title("Smart Hedge AI Terminal V23")
+# ----------- UI -----------
+st.markdown("## 📊 Smart Hedge AI Terminal V23")
 
-# ----------- LIVE DATA DISPLAY -----------
-col1, col2, col3 = st.columns(3)
+data = get_index_data()
 
-nifty = get_nifty_price()
+col1, col2, col3, col4 = st.columns(4)
+
+nifty = data.get("NIFTY", {}).get("last_price", "--")
+sensex = data.get("SENSEX", {}).get("last_price", "--")
+vix = data.get("INDIA VIX", {}).get("last_price", "--")
 
 col1.metric("NIFTY", nifty)
-col2.metric("SENSEX", "Loading...")
-col3.metric("VIX", "Loading...")
+col2.metric("SENSEX", sensex)
+col3.metric("VIX", vix)
+col4.metric("STATUS", "LIVE")
 
-# ----------- AUTO REFRESH -----------
+# ----------- AUTO REFRESH SAFE -----------
 time.sleep(5)
-st.rerun()
+st.experimental_rerun()
