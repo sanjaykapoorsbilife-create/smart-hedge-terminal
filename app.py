@@ -6,6 +6,7 @@ from streamlit_autorefresh import st_autorefresh
 # ----------- AUTO REFRESH -----------
 st_autorefresh(interval=5000, key="refresh")
 
+# ----------- PAGE CONFIG -----------
 st.set_page_config(page_title="Smart Hedge V23", layout="wide")
 
 # ----------- DHAN API -----------
@@ -23,7 +24,7 @@ def get_ltp():
     url = "https://api.dhan.co/v2/marketfeed/ltp"
 
     payload = {
-        "IDX_I": [13, 51, 21]
+        "IDX_I": [13, 51, 21]  # NIFTY, SENSEX, VIX
     }
 
     try:
@@ -56,6 +57,16 @@ def get_prev_close():
         return {"NIFTY": None, "SENSEX": None, "VIX": None}
 
 
+# ----------- GIFT NIFTY -----------
+@st.cache_data(ttl=30)
+def get_gift_nifty():
+    try:
+        gift = yf.Ticker("^NSEI").history(period="1d", interval="1m")
+        return round(gift["Close"].iloc[-1], 2)
+    except:
+        return None
+
+
 # ----------- CALCULATION -----------
 def calc(curr, prev):
     if curr is None or prev is None:
@@ -65,23 +76,13 @@ def calc(curr, prev):
     return round(chg, 2), round(pct, 2)
 
 
-def format_normal(chg, pct):
+def format_data(chg, pct):
     if chg is None:
         return None
     if chg > 0:
         return f"▲ {chg} ({pct}%)"
     elif chg < 0:
         return f"▼ {abs(chg)} ({abs(pct)}%)"
-    return "• 0"
-
-
-def format_vix(chg, pct):
-    if chg is None:
-        return None
-    if chg > 0:
-        return f"🔴 ▲ {chg} ({pct}%)"
-    elif chg < 0:
-        return f"🟢 ▼ {abs(chg)} ({abs(pct)}%)"
     return "• 0"
 
 
@@ -101,18 +102,24 @@ st.title("📊 Smart Hedge AI Terminal V23")
 
 ltp = get_ltp()
 prev = get_prev_close()
+gift = get_gift_nifty()
 
 n_chg, n_pct = calc(ltp["NIFTY"], prev["NIFTY"])
 s_chg, s_pct = calc(ltp["SENSEX"], prev["SENSEX"])
 v_chg, v_pct = calc(ltp["VIX"], prev["VIX"])
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 
-col1.metric("NIFTY", ltp["NIFTY"] or "--", format_normal(n_chg, n_pct))
-col2.metric("SENSEX", ltp["SENSEX"] or "--", format_normal(s_chg, s_pct))
-col3.metric("VIX", ltp["VIX"] or "--", format_vix(v_chg, v_pct))
+col1.metric("NIFTY", ltp["NIFTY"] or "--", format_data(n_chg, n_pct))
+col2.metric("SENSEX", ltp["SENSEX"] or "--", format_data(s_chg, s_pct))
+col3.metric("VIX", ltp["VIX"] or "--", format_data(v_chg, v_pct))
 col4.metric("STATUS", "LIVE")
+col5.metric("GIFT NIFTY", gift if gift else "--")
 
 st.subheader(f"Market Phase: {market_phase(ltp['VIX'])}")
 
-st.caption("Live: Dhan API | Previous Close: Yahoo Finance 🚀")
+# ----------- ERROR HANDLING -----------
+if ltp["NIFTY"] is None:
+    st.error("❌ Live data error")
+
+st.caption("Auto-refresh every 5 seconds 🚀")
