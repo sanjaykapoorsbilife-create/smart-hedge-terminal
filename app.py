@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 from streamlit_autorefresh import st_autorefresh
 
-# ----------- AUTO REFRESH (STABLE) -----------
+# ----------- AUTO REFRESH -----------
 st_autorefresh(interval=5000, key="refresh")
 
 # ----------- PAGE CONFIG -----------
@@ -41,26 +41,34 @@ def get_data():
     except:
         return {"NIFTY": None, "SENSEX": None, "VIX": None}
 
-# ----------- SESSION STATE (STORE PREVIOUS DATA) -----------
-if "prev_data" not in st.session_state:
-    st.session_state.prev_data = {"NIFTY": None, "SENSEX": None, "VIX": None}
 
-# ----------- HELPER FUNCTIONS -----------
+# ----------- SESSION STATE -----------
+if "base_data" not in st.session_state:
+    st.session_state.base_data = None
 
-def get_delta(curr, prev):
-    if curr is None or prev is None:
+
+# ----------- CALCULATION FUNCTIONS -----------
+
+def calculate_change(curr, base):
+    if curr is None or base is None:
+        return None, None
+    
+    change = curr - base
+    percent = (change / base) * 100
+    
+    return round(change, 2), round(percent, 2)
+
+
+def format_display(chg, pct):
+    if chg is None:
         return None
-    return round(curr - prev, 2)
-
-def format_delta(delta):
-    if delta is None:
-        return None
-    if delta > 0:
-        return f"▲ {delta}"
-    elif delta < 0:
-        return f"▼ {abs(delta)}"
+    if chg > 0:
+        return f"▲ {chg} ({pct}%)"
+    elif chg < 0:
+        return f"▼ {abs(chg)} ({abs(pct)}%)"
     else:
         return "• 0"
+
 
 def market_phase(vix):
     if vix is None:
@@ -72,38 +80,42 @@ def market_phase(vix):
     else:
         return "⚖️ NORMAL"
 
-# ----------- UI -----------
+
+# ----------- UI START -----------
 st.title("📊 Smart Hedge AI Terminal V23")
 
 data = get_data()
 
-# ----------- DELTA CALCULATION -----------
-nifty_delta = get_delta(data["NIFTY"], st.session_state.prev_data["NIFTY"])
-sensex_delta = get_delta(data["SENSEX"], st.session_state.prev_data["SENSEX"])
-vix_delta = get_delta(data["VIX"], st.session_state.prev_data["VIX"])
+# ----------- SET BASE (FIRST VALUE) -----------
+if st.session_state.base_data is None and data["NIFTY"] is not None:
+    st.session_state.base_data = data
 
-# ----------- FORMAT DELTA -----------
-nifty_text = format_delta(nifty_delta)
-sensex_text = format_delta(sensex_delta)
-vix_text = format_delta(vix_delta)
 
-# ----------- METRICS -----------
+# ----------- CALCULATIONS -----------
+base = st.session_state.base_data
+
+nifty_chg, nifty_pct = calculate_change(data["NIFTY"], base["NIFTY"] if base else None)
+sensex_chg, sensex_pct = calculate_change(data["SENSEX"], base["SENSEX"] if base else None)
+vix_chg, vix_pct = calculate_change(data["VIX"], base["VIX"] if base else None)
+
+
+# ----------- DISPLAY -----------
 col1, col2, col3, col4 = st.columns(4)
 
-col1.metric("NIFTY", data["NIFTY"] if data["NIFTY"] else "--", nifty_text)
-col2.metric("SENSEX", data["SENSEX"] if data["SENSEX"] else "--", sensex_text)
-col3.metric("VIX", data["VIX"] if data["VIX"] else "--", vix_text)
+col1.metric("NIFTY", data["NIFTY"] if data["NIFTY"] else "--", format_display(nifty_chg, nifty_pct))
+col2.metric("SENSEX", data["SENSEX"] if data["SENSEX"] else "--", format_display(sensex_chg, sensex_pct))
+col3.metric("VIX", data["VIX"] if data["VIX"] else "--", format_display(vix_chg, vix_pct))
 col4.metric("STATUS", "LIVE")
+
 
 # ----------- MARKET PHASE -----------
 st.subheader(f"Market Phase: {market_phase(data['VIX'])}")
+
 
 # ----------- ERROR HANDLING -----------
 if data["NIFTY"] is None:
     st.warning("⚠️ Data fetch issue — check API / internet")
 
-# ----------- SAVE CURRENT DATA -----------
-st.session_state.prev_data = data
 
 # ----------- FOOTER -----------
 st.caption("Live auto-refresh every 5 seconds 🚀")
