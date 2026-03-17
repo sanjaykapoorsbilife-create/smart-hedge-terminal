@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-import time
 
 # ----------- PAGE CONFIG -----------
 st.set_page_config(page_title="Smart Hedge V23", layout="wide")
@@ -30,36 +29,33 @@ def get_data():
         idx_data = data.get("data", {}).get("IDX_I", {})
 
         return {
-            "NIFTY": idx_data.get(13, {}).get("last_price"),
-            "SENSEX": idx_data.get(51, {}).get("last_price"),
-            "VIX": idx_data.get(21, {}).get("last_price")
+            "NIFTY": idx_data.get(13, {}).get("last_price", "--"),
+            "SENSEX": idx_data.get(51, {}).get("last_price", "--"),
+            "VIX": idx_data.get(21, {}).get("last_price", "--")
         }
 
     except:
-        return None
+        return {"NIFTY": "--", "SENSEX": "--", "VIX": "--"}
+
+# ----------- AUTO REFRESH KEY -----------
+if "refresh" not in st.session_state:
+    st.session_state.refresh = 0
 
 # ----------- UI -----------
 st.title("📊 Smart Hedge AI Terminal V23")
 
-placeholder = st.empty()
+data = get_data()
 
-while True:
-    data = get_data()
+col1, col2, col3, col4 = st.columns(4)
 
-    with placeholder.container():
-        col1, col2, col3, col4 = st.columns(4)
+col1.metric("NIFTY", data["NIFTY"])
+col2.metric("SENSEX", data["SENSEX"])
+col3.metric("VIX", data["VIX"])
+col4.metric("STATUS", "LIVE")
 
-        if data:
-            col1.metric("NIFTY", data["NIFTY"])
-            col2.metric("SENSEX", data["SENSEX"])
-            col3.metric("VIX", data["VIX"])
-        else:
-            col1.metric("NIFTY", "Loading...")
-            col2.metric("SENSEX", "Loading...")
-            col3.metric("VIX", "Loading...")
+# ----------- AUTO REFRESH TRIGGER -----------
+st.caption("Auto refreshing every 5 seconds...")
 
-        col4.metric("STATUS", "LIVE")
+st.session_state.refresh += 1
 
-        st.caption("Auto refreshing every 5 seconds...")
-
-    time.sleep(5)
+st.experimental_rerun() if st.session_state.refresh % 2 == 0 else None
