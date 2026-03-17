@@ -1,4 +1,4 @@
 streamlit
 requests
-streamlit-autorefresh
 yfinance
+streamlit-autorefresh
