@@ -27,13 +27,15 @@ def get_data():
         res = requests.post(url, headers=headers, json=payload)
         data = res.json()
 
+        idx_data = data.get("data", {}).get("IDX_I", {})
+
         return {
-            "NIFTY": data.get("data", {}).get("IDX_I", {}).get("13", {}).get("last_price", "--"),
-            "SENSEX": data.get("data", {}).get("IDX_I", {}).get("51", {}).get("last_price", "--"),
-            "VIX": data.get("data", {}).get("IDX_I", {}).get("21", {}).get("last_price", "--")
+            "NIFTY": idx_data.get(13, {}).get("last_price", "--"),
+            "SENSEX": idx_data.get(51, {}).get("last_price", "--"),
+            "VIX": idx_data.get(21, {}).get("last_price", "--")
         }
 
-    except Exception as e:
+    except Exception:
         return {
             "NIFTY": "Error",
             "SENSEX": "Error",
