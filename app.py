@@ -44,25 +44,22 @@ def get_ltp():
 def get_prev_close(security_id):
     url = "https://api.dhan.co/v2/charts/historical"
 
-    today = datetime.today()
-    from_date = (today - timedelta(days=5)).strftime("%Y-%m-%d")
-    to_date = today.strftime("%Y-%m-%d")
-
     payload = {
         "securityId": security_id,
         "exchangeSegment": "IDX_I",
         "instrument": "INDEX",
-        "interval": "1d",
-        "fromDate": from_date,
-        "toDate": to_date
+        "fromDate": "2024-01-01",
+        "toDate": "2024-12-31"
     }
 
     try:
         res = requests.post(url, headers=headers, json=payload, timeout=5)
-        data = res.json().get("data", [])
+        data = res.json()
 
-        if len(data) >= 2:
-            return data[-2]["close"]   # yesterday close
+        close_prices = data.get("close", [])
+
+        if len(close_prices) >= 2:
+            return close_prices[-2]   # ✅ yesterday close
 
     except:
         return None
