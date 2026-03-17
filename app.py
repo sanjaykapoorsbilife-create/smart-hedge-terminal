@@ -64,7 +64,6 @@ def get_prev_close(security_id):
     except:
         return None
 
-
 # ----------- CACHE PREV CLOSE -----------
 @st.cache_data(ttl=3600)
 def load_prev_close():
