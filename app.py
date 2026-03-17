@@ -20,20 +20,24 @@ def get_data():
     url = "https://api.dhan.co/v2/marketfeed/ltp"
 
     payload = {
-        "IDX_I": ["NIFTY 50", "SENSEX", "INDIA VIX"]
+        "IDX_I": ["NIFTY", "SENSEX", "VIX"]
     }
 
     try:
         res = requests.post(url, headers=headers, json=payload)
         data = res.json()
 
+        # DEBUG (you can remove later)
+        st.write("API RESPONSE:", data)
+
         return {
-            "NIFTY": data.get("data", {}).get("NIFTY 50", {}).get("last_price", "--"),
+            "NIFTY": data.get("data", {}).get("NIFTY", {}).get("last_price", "--"),
             "SENSEX": data.get("data", {}).get("SENSEX", {}).get("last_price", "--"),
-            "VIX": data.get("data", {}).get("INDIA VIX", {}).get("last_price", "--")
+            "VIX": data.get("data", {}).get("VIX", {}).get("last_price", "--")
         }
-    except:
-        return {"NIFTY": "--", "SENSEX": "--", "VIX": "--"}
+
+    except Exception as e:
+        return {"NIFTY": "Error", "SENSEX": "Error", "VIX": "Error"}
 
 # ----------- UI -----------
 st.title("📊 Smart Hedge AI Terminal V23")
