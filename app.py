@@ -57,4 +57,4 @@ col4.metric("STATUS", "LIVE")
 # ----------- AUTO REFRESH -----------
 st.write("Refreshing in 5 sec...")
 time.sleep(5)
-st.stop()
+st.rerun()
