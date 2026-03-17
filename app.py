@@ -4,7 +4,7 @@ import time
 
 st.set_page_config(page_title="Smart Hedge V23", layout="wide")
 
-# ---------------- SECRETS ----------------
+# ----------- SECRETS -----------
 CLIENT_ID = st.secrets["DHAN_CLIENT_ID"]
 ACCESS_TOKEN = st.secrets["DHAN_ACCESS_TOKEN"]
 
@@ -14,15 +14,13 @@ headers = {
     "Content-Type": "application/json"
 }
 
-# ---------------- FETCH DATA ----------------
+# ----------- FETCH DATA -----------
 def get_data():
-    url = "https://api.dhan.co/v2/marketfeed/ltp"
+    url = "https://api.dhan.co/v2/market/quote"
 
-    payload = [
-        {"exchangeSegment": "IDX_I", "securityId": "13"},  # NIFTY
-        {"exchangeSegment": "IDX_I", "securityId": "51"},  # SENSEX
-        {"exchangeSegment": "IDX_I", "securityId": "17"}   # VIX
-    ]
+    payload = {
+        "IDX_I": ["13", "51", "17"]
+    }
 
     try:
         res = requests.post(url, headers=headers, json=payload)
@@ -30,15 +28,12 @@ def get_data():
 
         result = {"NIFTY": "--", "SENSEX": "--", "VIX": "--"}
 
-        if isinstance(data.get("data"), list):
-            for item in data["data"]:
-                sid = item.get("securityId")
-                if sid == "13":
-                    result["NIFTY"] = item.get("last_price", "--")
-                elif sid == "51":
-                    result["SENSEX"] = item.get("last_price", "--")
-                elif sid == "17":
-                    result["VIX"] = item.get("last_price", "--")
+        if "data" in data:
+            idx = data["data"].get("IDX_I", {})
+
+            result["NIFTY"] = idx.get("13", {}).get("last_price", "--")
+            result["SENSEX"] = idx.get("51", {}).get("last_price", "--")
+            result["VIX"] = idx.get("17", {}).get("last_price", "--")
 
         return result
 
@@ -46,7 +41,7 @@ def get_data():
         st.write("ERROR:", e)
         return {"NIFTY": "--", "SENSEX": "--", "VIX": "--"}
 
-# ---------------- UI ----------------
+# ----------- UI -----------
 st.title("📊 Smart Hedge AI Terminal V23")
 
 data = get_data()
@@ -58,7 +53,7 @@ col2.metric("SENSEX", data["SENSEX"])
 col3.metric("VIX", data["VIX"])
 col4.metric("STATUS", "LIVE")
 
-# ---------------- REFRESH ----------------
+# ----------- REFRESH -----------
 st.write("Refreshing in 5 sec...")
 time.sleep(5)
 st.stop()
