@@ -1,23 +1,53 @@
 import streamlit as st
+import requests
 import time
-from live_data import live_prices, start_background_ws
 
+# ----------- PAGE CONFIG -----------
 st.set_page_config(page_title="Smart Hedge V23", layout="wide")
 
-# START WEBSOCKET (only once)
-if "ws_started" not in st.session_state:
-    start_background_ws()
-    st.session_state.ws_started = True
+# ----------- DHAN API -----------
+CLIENT_ID = st.secrets["DHAN_CLIENT_ID"]
+ACCESS_TOKEN = st.secrets["DHAN_ACCESS_TOKEN"]
 
+headers = {
+    "access-token": ACCESS_TOKEN,
+    "client-id": CLIENT_ID,
+    "Content-Type": "application/json"
+}
+
+# ----------- FETCH DATA -----------
+def get_data():
+    url = "https://api.dhan.co/v2/marketfeed/ltp"
+
+    payload = {
+        "IDX_I": ["NIFTY 50", "SENSEX", "INDIA VIX"]
+    }
+
+    try:
+        res = requests.post(url, headers=headers, json=payload)
+        data = res.json()
+
+        return {
+            "NIFTY": data.get("data", {}).get("NIFTY 50", {}).get("last_price", "--"),
+            "SENSEX": data.get("data", {}).get("SENSEX", {}).get("last_price", "--"),
+            "VIX": data.get("data", {}).get("INDIA VIX", {}).get("last_price", "--")
+        }
+    except:
+        return {"NIFTY": "--", "SENSEX": "--", "VIX": "--"}
+
+# ----------- UI -----------
 st.title("📊 Smart Hedge AI Terminal V23")
+
+data = get_data()
 
 col1, col2, col3, col4 = st.columns(4)
 
-col1.metric("NIFTY", live_prices["NIFTY"])
-col2.metric("SENSEX", live_prices["SENSEX"])
-col3.metric("VIX", live_prices["VIX"])
+col1.metric("NIFTY", data["NIFTY"])
+col2.metric("SENSEX", data["SENSEX"])
+col3.metric("VIX", data["VIX"])
 col4.metric("STATUS", "LIVE")
 
-st.write("Live updating...")
-time.sleep(2)
+# ----------- AUTO REFRESH -----------
+st.write("Refreshing in 5 sec...")
+time.sleep(5)
 st.stop()
