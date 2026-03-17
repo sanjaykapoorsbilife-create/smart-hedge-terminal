@@ -139,3 +139,122 @@ if ltp["NIFTY"] is None:
     st.error("❌ Live data error from Dhan API")
 
 st.caption("Live updating every 5 sec ⚡")
+
+
+# ================================
+# 🔷 PANEL 1 — MARKET INTELLIGENCE
+# ================================
+
+import numpy as np
+
+@st.cache_data(ttl=60)
+def get_intraday_data():
+    try:
+        data = yf.Ticker("^NSEI").history(period="1d", interval="5m")
+        return data
+    except:
+        return None
+
+
+def calculate_market_phase(data):
+    if data is None or len(data) < 20:
+        return "Loading..."
+
+    high = data["High"].rolling(10).max()
+    low = data["Low"].rolling(10).min()
+
+    if data["Close"].iloc[-1] > high.iloc[-2]:
+        return "🚀 EXPANSION"
+    elif data["Close"].iloc[-1] < low.iloc[-2]:
+        return "🔻 BREAKDOWN"
+    else:
+        return "⚖️ RANGE"
+
+
+def calculate_momentum(data):
+    if data is None or len(data) < 10:
+        return "Loading..."
+
+    change = data["Close"].iloc[-1] - data["Close"].iloc[-5]
+
+    if change > 20:
+        return "🟢 STRONG"
+    elif change < -20:
+        return "🔴 WEAK"
+    else:
+        return "🟡 SLOW"
+
+
+def calculate_structure(data):
+    if data is None or len(data) < 20:
+        return "Loading..."
+
+    highs = data["High"]
+    lows = data["Low"]
+
+    if highs.iloc[-1] > highs.iloc[-3] and lows.iloc[-1] > lows.iloc[-3]:
+        return "🟢 HH-HL (UPTREND)"
+    elif highs.iloc[-1] < highs.iloc[-3] and lows.iloc[-1] < lows.iloc[-3]:
+        return "🔴 LH-LL (DOWNTREND)"
+    else:
+        return "🟡 SIDEWAYS"
+
+
+def calculate_pressure(data):
+    if data is None or len(data) < 10:
+        return "Loading..."
+
+    buy_pressure = sum(data["Close"] > data["Open"])
+    sell_pressure = sum(data["Close"] < data["Open"])
+
+    if buy_pressure > sell_pressure:
+        return "🟢 BUYERS ACTIVE"
+    elif sell_pressure > buy_pressure:
+        return "🔴 SELLERS ACTIVE"
+    else:
+        return "🟡 BALANCED"
+
+
+# ----------- PANEL OUTPUT -----------
+data_intraday = get_intraday_data()
+
+phase = calculate_market_phase(data_intraday)
+momentum = calculate_momentum(data_intraday)
+structure = calculate_structure(data_intraday)
+pressure = calculate_pressure(data_intraday)
+
+st.markdown("## 🧠 Market Intelligence Panel")
+
+colA, colB, colC, colD = st.columns(4)
+
+colA.metric("Market Phase", phase)
+colB.metric("Momentum", momentum)
+colC.metric("Structure", structure)
+colD.metric("Pressure", pressure)
+
+
+# ----------- FINAL DIRECTION LOGIC -----------
+
+def final_direction(phase, momentum, structure, pressure):
+    score = 0
+
+    if "EXPANSION" in phase:
+        score += 2
+    if "STRONG" in momentum:
+        score += 2
+    if "UPTREND" in structure:
+        score += 2
+    if "BUYERS" in pressure:
+        score += 2
+
+    if score >= 6:
+        return "🟢 STRONG BULLISH"
+    elif score <= 2:
+        return "🔴 STRONG BEARISH"
+    else:
+        return "🟡 SIDEWAYS"
+
+
+direction = final_direction(phase, momentum, structure, pressure)
+
+st.markdown(f"## 🎯 Market Direction: {direction}")
