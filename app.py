@@ -8,7 +8,7 @@ ACCESS_TOKEN = st.secrets["DHAN_ACCESS_TOKEN"]
 headers = {
     "access-token": ACCESS_TOKEN,
     "client-id": CLIENT_ID,
-    "Content-Type": "application/json"
+    "Content-Type": "applcation/json"
 }
 def get_nifty_price():
     url = "https://api.dhan.co/v2/marketfeed/ltp"
@@ -24,7 +24,6 @@ def get_nifty_price():
     except:
         return {"error": "API not working"}
 import streamlit as st
-import yfinance as yf
 import time
 import random
 import streamlit.components.v1 as components
