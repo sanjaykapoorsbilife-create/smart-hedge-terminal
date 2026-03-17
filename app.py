@@ -1,12 +1,11 @@
 import streamlit as st
 import requests
-from datetime import datetime, timedelta
+import yfinance as yf
 from streamlit_autorefresh import st_autorefresh
 
 # ----------- AUTO REFRESH -----------
 st_autorefresh(interval=5000, key="refresh")
 
-# ----------- PAGE CONFIG -----------
 st.set_page_config(page_title="Smart Hedge V23", layout="wide")
 
 # ----------- DHAN API -----------
@@ -19,7 +18,7 @@ headers = {
     "Content-Type": "application/json"
 }
 
-# ----------- FETCH LIVE DATA -----------
+# ----------- LIVE DATA (DHAN) -----------
 def get_ltp():
     url = "https://api.dhan.co/v2/marketfeed/ltp"
 
@@ -40,41 +39,24 @@ def get_ltp():
         return {"NIFTY": None, "SENSEX": None, "VIX": None}
 
 
-# ----------- FETCH PREVIOUS CLOSE -----------
-def get_prev_close(security_id):
-    url = "https://api.dhan.co/v2/charts/historical"
-
-    payload = {
-        "securityId": security_id,
-        "exchangeSegment": "IDX_I",
-        "instrument": "INDEX",
-        "fromDate": "2024-01-01",
-        "toDate": "2024-12-31"
-    }
-
-    try:
-        res = requests.post(url, headers=headers, json=payload, timeout=5)
-        data = res.json()
-
-        close_prices = data.get("close", [])
-
-        if len(close_prices) >= 2:
-            return close_prices[-2]   # ✅ yesterday close
-
-    except:
-        return None
-
-# ----------- CACHE PREV CLOSE -----------
+# ----------- PREVIOUS CLOSE (YAHOO) -----------
 @st.cache_data(ttl=3600)
-def load_prev_close():
-    return {
-        "NIFTY": get_prev_close(13),
-        "SENSEX": get_prev_close(51),
-        "VIX": get_prev_close(21)
-    }
+def get_prev_close():
+    try:
+        nifty = yf.Ticker("^NSEI").history(period="2d")["Close"]
+        sensex = yf.Ticker("^BSESN").history(period="2d")["Close"]
+        vix = yf.Ticker("^INDIAVIX").history(period="2d")["Close"]
+
+        return {
+            "NIFTY": round(nifty.iloc[-2], 2),
+            "SENSEX": round(sensex.iloc[-2], 2),
+            "VIX": round(vix.iloc[-2], 2)
+        }
+    except:
+        return {"NIFTY": None, "SENSEX": None, "VIX": None}
 
 
-# ----------- CALCULATIONS -----------
+# ----------- CALCULATION -----------
 def calc(curr, prev):
     if curr is None or prev is None:
         return None, None
@@ -93,7 +75,6 @@ def format_normal(chg, pct):
     return "• 0"
 
 
-# 🔴 VIX SPECIAL
 def format_vix(chg, pct):
     if chg is None:
         return None
@@ -119,7 +100,7 @@ def market_phase(vix):
 st.title("📊 Smart Hedge AI Terminal V23")
 
 ltp = get_ltp()
-prev = load_prev_close()
+prev = get_prev_close()
 
 n_chg, n_pct = calc(ltp["NIFTY"], prev["NIFTY"])
 s_chg, s_pct = calc(ltp["SENSEX"], prev["SENSEX"])
@@ -134,12 +115,4 @@ col4.metric("STATUS", "LIVE")
 
 st.subheader(f"Market Phase: {market_phase(ltp['VIX'])}")
 
-# ----------- ERROR HANDLING -----------
-if ltp["NIFTY"] is None:
-    st.error("❌ Live data error")
-
-if prev["NIFTY"] is None:
-    st.warning("⚠️ Prev close not loaded yet")
-
-# ----------- FOOTER -----------
-st.caption("Live + Previous Close powered by Dhan Data API 🚀")
+st.caption("Live: Dhan API | Previous Close: Yahoo Finance 🚀")
