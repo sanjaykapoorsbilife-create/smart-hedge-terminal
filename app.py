@@ -236,23 +236,47 @@ colD.metric("Pressure", pressure)
 # ----------- FINAL DIRECTION LOGIC -----------
 
 def final_direction(phase, momentum, structure, pressure):
-    score = 0
 
+    bullish = 0
+    bearish = 0
+
+    # 1️⃣ Market Phase
     if "EXPANSION" in phase:
-        score += 2
-    if "STRONG" in momentum:
-        score += 2
-    if "UPTREND" in structure:
-        score += 2
-    if "BUYERS" in pressure:
-        score += 2
+        bullish += 2
+    elif "BREAKDOWN" in phase:
+        bearish += 2
 
-    if score >= 6:
+    # 2️⃣ Momentum
+    if "STRONG" in momentum:
+        bullish += 2
+    elif "WEAK" in momentum:
+        bearish += 2
+
+    # 3️⃣ Structure
+    if "UPTREND" in structure:
+        bullish += 3
+    elif "DOWNTREND" in structure:
+        bearish += 3
+
+    # 4️⃣ Pressure
+    if "BUY" in pressure:
+        bullish += 1
+    elif "SELL" in pressure:
+        bearish += 1
+
+    # 🚫 SIDEWAYS FILTER (VERY IMPORTANT)
+    if "SIDEWAYS" in structure:
+        return "🟡 SIDEWAYS / NO TRADE"
+
+    # 🎯 FINAL DECISION
+    if bullish - bearish >= 3:
         return "🟢 STRONG BULLISH"
-    elif score <= 2:
+
+    elif bearish - bullish >= 3:
         return "🔴 STRONG BEARISH"
+
     else:
-        return "🟡 SIDEWAYS"
+        return "🟡 SIDEWAYS / NO TRADE"
 
 
 direction = final_direction(phase, momentum, structure, pressure)
