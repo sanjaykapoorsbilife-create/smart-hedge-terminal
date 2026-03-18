@@ -238,16 +238,6 @@ col2.metric("Momentum", momentum)
 col3.metric("Structure", structure)
 col4.metric("Pressure", pressure)
 
-# ------------------------------
-# 🎯 FINAL DIRECTION
-# ------------------------------
-direction = final_direction(phase, momentum, structure, pressure)
-
-st.markdown(f"## 🎯 Market Direction: {direction}")
-
-    
-
-
 
 # ----------- FINAL DIRECTION LOGIC -----------
 
@@ -295,6 +285,14 @@ def final_direction(phase, momentum, structure, pressure):
         return "🟡 SIDEWAYS / NO TRADE"
 
 
+
+# ------------------------------
+# 🎯 FINAL DIRECTION
+# ------------------------------
 direction = final_direction(phase, momentum, structure, pressure)
 
 st.markdown(f"## 🎯 Market Direction: {direction}")
+
+    
+
+
