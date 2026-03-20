@@ -145,7 +145,6 @@ def market_phase(vix):
 # ----------- UI -----------
 st.title("📊 Smart Hedge AI Terminal V23")
 
-prev = get_prev_close()
 gift = get_gift_nifty()
 
 n_chg, n_pct = calc(ltp["NIFTY"], prev["NIFTY"])
