@@ -150,9 +150,9 @@ gift = get_gift_nifty()
 ltp = get_index_data()
 col1, col2, col3, col4, col5 = st.columns(5)
 
-col1.metric("NIFTY", ltp["NIFTY"] or "--", format_data(n_chg, n_pct))
-col2.metric("SENSEX", ltp["SENSEX"] or "--", format_data(s_chg, s_pct))
-col3.metric("VIX", ltp["VIX"] or "--", format_data(v_chg, v_pct))
+col1.metric("NIFTY", ltp["NIFTY"])
+col2.metric("SENSEX", ltp["SENSEX"])
+col3.metric("VIX", ltp["VIX"])
 col4.metric("STATUS", get_market_status())
 col5.metric("GIFT NIFTY", gift if gift else "--")
 
