@@ -161,7 +161,7 @@ st.subheader(f"Market Phase: {market_phase(ltp['VIX'])}")
 # ----------- ERROR HANDLING -----------
 if ltp["NIFTY"] == "--":
     
-st.error("❌ Live data error")
+    st.error("❌ Live data error")
 
 st.caption("Live updating every 5 sec ⚡")
 
