@@ -39,25 +39,54 @@ def get_market_status():
         return "CLOSED"
 
 
-# ----------- LIVE DATA (DHAN) -----------
-def get_ltp():
-    url = "https://api.dhan.co/v2/marketfeed/ltp"
+# ================================
+# 🔷 TOP MARKET DATA (SAFE MODE)
+# ================================
 
-    payload = {
-        "IDX_I": [13, 51, 21]
-    }
+import datetime
+import yfinance as yf
 
+def is_market_open():
+    now = datetime.datetime.now()
+
+    if now.weekday() >= 5:
+        return False
+
+    if (now.hour > 9 or (now.hour == 9 and now.minute >= 15)) and \
+       (now.hour < 15 or (now.hour == 15 and now.minute <= 30)):
+        return True
+
+    return False
+
+
+@st.cache_data(ttl=60)
+def get_index_data():
     try:
-        res = requests.post(url, headers=headers, json=payload, timeout=3)
-        data = res.json().get("data", {}).get("IDX_I", {})
+        nifty = yf.Ticker("^NSEI").history(period="1d", interval="1m")
+        sensex = yf.Ticker("^BSESN").history(period="1d", interval="1m")
+        vix = yf.Ticker("^INDIAVIX").history(period="1d", interval="1m")
 
         return {
-            "NIFTY": data.get("13", {}).get("last_price"),
-            "SENSEX": data.get("51", {}).get("last_price"),
-            "VIX": data.get("21", {}).get("last_price")
+            "NIFTY": round(nifty["Close"].iloc[-1], 2),
+            "SENSEX": round(sensex["Close"].iloc[-1], 2),
+            "VIX": round(vix["Close"].iloc[-1], 2),
         }
     except:
-        return {"NIFTY": None, "SENSEX": None, "VIX": None}
+        return {"NIFTY": "--", "SENSEX": "--", "VIX": "--"}
+
+
+# 🔹 GET DATA
+data = get_index_data()
+status = "LIVE" if is_market_open() else "CLOSED"
+
+# 🔹 UI
+col1, col2, col3, col4, col5 = st.columns(5)
+
+col1.metric("NIFTY", data["NIFTY"])
+col2.metric("SENSEX", data["SENSEX"])
+col3.metric("VIX", data["VIX"])
+col4.metric("STATUS", status)
+col5.metric("GIFT NIFTY", "--")
 
 
 # ----------- PREVIOUS CLOSE -----------
