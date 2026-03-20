@@ -147,10 +147,6 @@ st.title("📊 Smart Hedge AI Terminal V23")
 
 gift = get_gift_nifty()
 
-n_chg, n_pct = calc(ltp["NIFTY"], prev["NIFTY"])
-s_chg, s_pct = calc(ltp["SENSEX"], prev["SENSEX"])
-v_chg, v_pct = calc(ltp["VIX"], prev["VIX"])
-
 ltp = get_index_data()
 col1, col2, col3, col4, col5 = st.columns(5)
 
