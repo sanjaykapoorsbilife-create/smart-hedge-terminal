@@ -145,7 +145,6 @@ def market_phase(vix):
 # ----------- UI -----------
 st.title("📊 Smart Hedge AI Terminal V23")
 
-ltp = get_ltp()
 prev = get_prev_close()
 gift = get_gift_nifty()
 
@@ -153,6 +152,7 @@ n_chg, n_pct = calc(ltp["NIFTY"], prev["NIFTY"])
 s_chg, s_pct = calc(ltp["SENSEX"], prev["SENSEX"])
 v_chg, v_pct = calc(ltp["VIX"], prev["VIX"])
 
+ltp = get_index_data()
 col1, col2, col3, col4, col5 = st.columns(5)
 
 col1.metric("NIFTY", ltp["NIFTY"] or "--", format_data(n_chg, n_pct))
@@ -164,8 +164,9 @@ col5.metric("GIFT NIFTY", gift if gift else "--")
 st.subheader(f"Market Phase: {market_phase(ltp['VIX'])}")
 
 # ----------- ERROR HANDLING -----------
-if ltp["NIFTY"] is None:
-    st.error("❌ Live data error from Dhan API")
+if ltp["NIFTY"] == "--":
+    
+st.error("❌ Live data error")
 
 st.caption("Live updating every 5 sec ⚡")
 
